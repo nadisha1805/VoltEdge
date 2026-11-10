@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Truck, ShieldCheck, MapPin, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Sparkles, Truck, ShieldCheck, MapPin, X, Lock } from 'lucide-react';
 
 export const AnnouncementBar: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -24,9 +25,16 @@ export const AnnouncementBar: React.FC = () => {
 
         {/* Right: Quick Showroom info & close */}
         <div className="flex items-center gap-4">
+          <Link
+            to="/admin"
+            className="flex items-center gap-1 text-[11px] font-bold text-cyan-400 hover:text-white bg-slate-800/80 px-2 py-0.5 rounded-md transition-colors"
+          >
+            <Lock className="w-3 h-3" />
+            <span>Staff Portal</span>
+          </Link>
           <div className="hidden lg:flex items-center gap-1.5 text-slate-400 hover:text-slate-200 transition-colors">
             <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-            <span>Visit Showroom: 450 Technology Parkway, Suite 100</span>
+            <span>Visit Showroom: Plot 42, Digital Corridor, Cyber City</span>
           </div>
           <button
             onClick={() => setIsVisible(false)}

@@ -1,7 +1,7 @@
 # VOLTEDGE ELECTRONICS
 > **Tagline:** Powering Your Digital World.  
 > **Project Type:** Electronics Showroom Website & E-commerce Platform  
-> **Milestone:** 1 of 4 – Website Design & Technical Foundation
+> **Milestone:** 2 of 4 – Admin Dashboard & Showroom Management System
 
 ---
 
@@ -9,235 +9,309 @@
 
 **VOLTEDGE Electronics** is a high-performance showroom website and modern e-commerce platform dedicated to consumer electronics, premium computing workstations, audiophile headphones, next-gen gaming gear, and intelligent smart home ecosystems.
 
-This repository contains the complete implementation of **Milestone 1: Website Design & Technical Foundation**, providing a fully working, real application with a responsive React frontend, an Express REST API backend, and a Prisma ORM database layer.
+This repository contains the complete implementation of **Milestone 2: Admin Dashboard & Showroom Management System**, seamlessly extending the foundation established in Milestone 1 without breaking existing customer-facing features.
+
+It equips showroom administrators and staff with a centralized, secure management interface to govern inventory, monitor stock movements, process orders, review customer analytics, configure promotions, oversee staff roles, manage enquiries, and generate business intelligence reports.
 
 ---
 
 ## 🛠 Technology Stack
 
-### Frontend
+### Frontend (`/client`)
 - **Framework:** React 19 + TypeScript + Vite
-- **Styling:** Tailwind CSS (Custom VOLTEDGE Design System)
+- **Styling:** Tailwind CSS (Custom VOLTEDGE Design System with Deep Navy, Electric Blue, Light Backgrounds)
 - **Routing:** React Router v7
-- **HTTP Client:** Axios
+- **HTTP Client:** Axios with JWT & Cookie Interceptors
 - **Iconography:** Lucide React
-- **Fonts:** Plus Jakarta Sans & Inter
+- **Typography:** Plus Jakarta Sans & Inter
+- **Data Visualization:** Interactive Custom SVG Line/Area Charts, Bar Charts, and Donut Charts
 
-### Backend
+### Backend (`/server`)
 - **Runtime:** Node.js v24
-- **Framework:** Express.js + TypeScript
-- **Architecture:** Modular REST API Architecture with centralized error handling & CORS
-- **Execution / Tooling:** tsx & TypeScript compiler
+- **Framework:** Express.js (ESM) + TypeScript
+- **Security & Auth:** `bcryptjs` (password hashing), `jsonwebtoken` (JWT sessions), `cookie-parser` (HTTP-only secure cookies)
+- **Storage & Uploads:** `multer` with file validation (JPEG, PNG, WebP) and static image serving (`/uploads`)
+- **Architecture:** Protected REST APIs, Role-Based Access Control (RBAC) middleware, centralized audit logger, and transaction-safe operations
 
-### Database & ORM
-- **ORM:** Prisma ORM v5
-- **Database Engine:** SQLite (zero-configuration local development) with dual schema configuration for PostgreSQL (`schema.postgresql.prisma`)
-
----
-
-## 🎨 Branding & Design System
-
-VOLTEDGE Electronics features a premium, modern, and technology-focused visual identity:
-
-| Brand Color | Hex Code | Purpose |
-|---|---|---|
-| **Deep Navy** | `#10243A` | Primary brand headers, hero sections, and footer |
-| **Electric Blue** | `#2563EB` | Primary accents, interactive buttons, focus rings |
-| **Light Background** | `#F7F9FC` | Clean, spacious page canvas |
-| **Pure White** | `#FFFFFF` | Elevated product cards and modals |
-| **Text Primary** | `#202B3C` | High-contrast readable typography |
-| **Muted Grey** | `#64748B` | Secondary captions, metadata, and borders |
+### Database & ORM (`/server/prisma`)
+- **ORM:** Prisma ORM v5.22
+- **Database Engine:** SQLite by default (`file:./dev.db`) with zero-configuration out-of-the-box support, plus dual schema configuration for PostgreSQL (`schema.postgresql.prisma`)
 
 ---
 
-## 🚀 Customer-Facing Website (Milestone 1 Scope)
+## 🔐 Role-Based Access Control (RBAC) Matrix
 
-### A. Homepage Sections (18 Components Implemented)
-1. **Announcement Bar:** Dismissible promotional bar highlighting showroom walk-in hours, nationwide express shipping, and manufacturer warranty.
-2. **Header with VOLTEDGE Logo:** Custom electric bolt branding badge and typography.
-3. **Navigation Menu:** Multi-category navigation linking directly into filtered catalog views.
-4. **Search Bar:** Global live search input with query submission to catalog.
-5. **Account Icon Placeholder:** Dropdown menu indicating Milestone 2 authentication roadmap.
-6. **Wishlist Icon Placeholder:** Interactive badge count and slide-over Wishlist drawer with 1-click move to cart.
-7. **Shopping Cart Icon Placeholder:** Interactive badge count, free shipping progress bar, subtotal calculator, item counter, and slide-out Cart drawer.
-8. **Premium Hero Banner with CTA:** Headline *"Powering Your Digital World"*, showcase visual of flagship hardware, and direct action triggers.
-9. **Shop by Category Section:** Interactive grid with custom icons (Laptops & Computers, Smartphones & Tablets, Audio & Headphones, Smartwatches, Gaming Gear, Smart Home).
-10. **Featured Products Section:** Showroom highlight cards with pricing, ratings, and instant actions.
-11. **Best Sellers Section:** Community-favorite hardware and top-rated devices.
-12. **Latest Arrivals Section:** 2026 releases and flagship models.
-13. **Special Offers Section:** Discount badges, original price strikethroughs, and savings indicators.
-14. **Featured Brands Section:** Partner brand showcase (Apple, Sony, Samsung, Dell, ASUS ROG, Bose, Logitech, Keychron).
-15. **Why Choose VOLTEDGE Section:** Key value propositions (100% Genuine Tech, White-Glove Courier, 30-Day Showroom Trial, Expert Tech Concierge).
-16. **Customer Testimonials Section:** Verified customer reviews with star ratings and buyer roles.
-17. **Newsletter Subscription Section:** Functional newsletter signup with client/server validation, status messages, and database storage.
-18. **Complete Footer:** Showroom hours, address, contact details, quick links, category navigation, and trust badges.
+The backend enforces four strict hierarchical permission tiers:
 
-### B. Shop / All Products Catalog Page
-- **Product Search:** Live text search filtering across product titles, descriptions, and tags.
-- **Category Filtering:** Department selection with dynamic count badges.
-- **Brand Filtering:** Multi-brand filter list.
-- **Price Range Filter:** Min and max price filters with instant application.
-- **Stock Availability Filter:** In-stock only toggle switch.
-- **Special Deal Filters:** Instant toggles for Special Offers, Best Sellers, and Latest Models.
-- **Sorting Options:** Featured First, Price: Low to High, Price: High to Low, Highest Rated, Biggest Discount, Newest Arrivals, Alphabetical.
-- **Pagination & Counter:** Results indicator (*"Showing 1–12 of 16 products"*) with pagination controls.
-- **Mobile Filter Drawer:** Slide-out filter panel on small screens.
-- **Quick View Modal:** Product preview modal displaying high-res gallery, key technical specs, stock availability, and quantity picker.
-- **Product Detail Page:** Deep-dive page (`/product/:slug`) with full technical specifications grid, high-resolution zoom gallery, warranty details, and related product recommendations.
+| Module / Operation | Super Admin (`SUPER_ADMIN`) | Admin / Manager (`ADMIN`) | Inventory Manager (`INVENTORY_MANAGER`) | Sales Staff (`SALES_STAFF`) |
+|---|:---:|:---:|:---:|:---:|
+| **Dashboard Telemetry** | Full Access | Full Access | Inventory Metrics | Permitted Stats |
+| **Product Management** | CRUD & Archive | CRUD & Archive | View Only | View Only |
+| **Category & Brand Management** | Full Control | Full Control | View Only | View Only |
+| **Inventory & Stock Adjustments** | Full Control | Full Control | Full Control | View Stock Only |
+| **Stock Movement Ledger** | Full Audit Trail | Full Audit Trail | Full Audit Trail | View Only |
+| **Order Management** | Full Progression | Full Progression | View Items | Status / Sales View |
+| **Customer Directory** | Full Profile & Notes | Full Profile & Notes | View Only | Permitted Ops |
+| **Coupons & Promotions** | Create & Manage | Create & Manage | View Only | View Only |
+| **Staff & Credential Admin** | **Exclusive Access** | Forbidden (403) | Forbidden (403) | Forbidden (403) |
+| **Customer Enquiries** | Full Workflow | Full Workflow | View Only | View Only |
+| **Newsletter & CSV Export** | Full Access | Full Access | View Only | View Only |
+| **Business Reports & CSV** | Full Reports | Full Reports | Inventory Reports | Basic Reports |
+| **Showroom Settings** | **Full Edit** | View Only | View Only | View Only |
+
+### Demo Accounts for Testing
+
+| Role | Staff Name | Email Address | Password |
+|---|---|---|---|
+| **Super Admin** | Vikram Malhotra | `admin@voltedge.com` | `AdminPassword@123` |
+| **Admin / Manager** | Priya Sharma | `manager@voltedge.com` | `ManagerPassword@123` |
+| **Inventory Manager** | Rahul Verma | `inventory@voltedge.com` | `InventoryPassword@123` |
+| **Sales Staff** | Ananya Patel | `sales@voltedge.com` | `SalesPassword@123` |
+
+*(Convenience demo-pill buttons on `/admin/login` allow 1-click credential population for rapid evaluation).*
 
 ---
 
-## 📁 Project Structure
+## 🚀 Admin Dashboard Modules (Milestone 2 Scope)
 
-```
-VoltEdge/M1/
-├── package.json               # Root scripts (dev, build, test, seed)
-├── README.md                  # Project documentation
-│
-├── server/                    # Backend REST API
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── .env                   # Environment configuration
-│   ├── .env.example
-│   ├── test-api.js            # Automated API endpoint verification suite
-│   ├── prisma/
-│   │   ├── schema.prisma      # Active SQLite schema (zero-config local)
-│   │   ├── schema.postgresql.prisma # PostgreSQL production schema
-│   │   ├── seed.ts            # Realistic electronics showroom database seeder
-│   │   └── dev.db             # Local SQLite database
-│   └── src/
-│       ├── index.ts           # Express application, CORS, error handling
-│       ├── prisma.ts          # Prisma client singleton
-│       └── routes/
-│           ├── products.ts    # GET /api/products, GET /api/products/:identifier
-│           ├── categories.ts  # GET /api/categories, GET /api/categories/:slug
-│           ├── brands.ts      # GET /api/brands
-│           ├── banners.ts     # GET /api/banners
-│           ├── testimonials.ts# GET /api/testimonials
-│           └── newsletter.ts  # POST /api/newsletter/subscribe
-│
-└── client/                    # Frontend React Application
-    ├── package.json
-    ├── tsconfig.json
-    ├── vite.config.ts         # Vite configuration with API proxy to port 5000
-    ├── tailwind.config.js     # VOLTEDGE branding color system
-    ├── index.html
-    └── src/
-        ├── App.tsx            # Main application layout & routes
-        ├── main.tsx
-        ├── index.css          # Tailwind CSS directives & typography
-        ├── types/             # TypeScript interfaces (Product, Category, Brand, etc.)
-        ├── context/
-        │   ├── CartContext.tsx    # Cart state & localStorage sync
-        │   ├── WishlistContext.tsx# Wishlist state & localStorage sync
-        │   └── ToastContext.tsx   # Modern toast notification system
-        ├── services/
-        │   └── api.ts         # Axios REST API client
-        ├── components/
-        │   ├── AnnouncementBar.tsx
-        │   ├── Header.tsx
-        │   ├── HeroBanner.tsx
-        │   ├── CategorySection.tsx
-        │   ├── ProductSection.tsx
-        │   ├── ProductCard.tsx
-        │   ├── QuickViewModal.tsx
-        │   ├── CartDrawer.tsx
-        │   ├── WishlistDrawer.tsx
-        │   ├── FeaturedBrandsSection.tsx
-        │   ├── WhyChooseUsSection.tsx
-        │   ├── TestimonialsSection.tsx
-        │   ├── NewsletterSection.tsx
-        │   └── Footer.tsx
-        └── pages/
-            ├── HomePage.tsx
-            ├── ShopPage.tsx
-            └── ProductDetailPage.tsx
-```
+1. **Dashboard Overview (`/admin`)**
+   - 8 Real-time Summary Cards: Total Products, Categories, Brands, Customers, Orders, Revenue (calculated strictly from actual paid orders), Low Stock Alert, Pending Enquiries.
+   - Interactive Area Line Chart: Revenue & orders overview timeline.
+   - Donut Chart: Inventory status breakdown (In Stock, Low Stock, Out of Stock).
+   - Bar Chart: Product category distribution.
+   - Top Selling Products: High velocity hardware ranked by fulfilled units.
+   - Administrative Audit Ledger: Real-time table of recent administrative activity logs.
+
+2. **Product Management (`/admin/products`)**
+   - Filterable data table with live search, category, brand, and stock status filters.
+   - Multi-column sorting (name, price, stock, newest).
+   - Rich Add/Edit modal: Name, SKU, category, brand, selling price, cost price (for valuation), compare-at price, stock quantity, warranty info, tags, and hardware specification key-values.
+   - Image manager: Upload local files or paste image URLs, preview gallery, set primary image, delete images.
+   - Safe Deletion & Archival: Soft-archives products that have historical customer order records to protect financial audit trails; safe hard-deletion only for unreferenced items.
+
+3. **Category Management (`/admin/categories`)**
+   - Visual category cards showing product counts, cover photos, and display order.
+   - Full parent-child hierarchical taxonomy support.
+   - Safeguard: Prevents deleting categories containing active products unless products are explicitly reassigned to an alternate category.
+
+4. **Brand Management (`/admin/brands`)**
+   - Partner brand directory with logos, descriptions, and storefront feature flags.
+   - Product count indicators and relationship integrity guards.
+
+5. **Inventory & Stock Control (`/admin/inventory`)**
+   - Total stock units, in-stock count, low-stock count, out-of-stock count.
+   - **Explicit Valuation Methodology:** Standard Cost Valuation basis calculated as $\sum(\text{Unit Cost Price} \times \text{On-Hand Quantity})$, alongside showroom retail valuation.
+   - Stock adjustment dialog: Record atomic stock updates (`STOCK_IN`, `STOCK_OUT`, `ADJUSTMENT`, `RETURN_RESTOCK`, `CORRECTION`) with mandatory reason and reference number.
+
+6. **Stock Movements Ledger (`/admin/inventory/movements`)**
+   - Transactional audit log recording previous quantity, change amount, new balance, movement type, reason, PO/invoice reference, authorized staff member, and timestamp.
+   - Filterable by movement type and product SKU.
+
+7. **Order Management Foundation (`/admin/orders`)**
+   - Filterable orders table (Pending, Confirmed, Processing, Shipped, Delivered, Cancelled).
+   - Order detail drawer: Item breakdown with SKU and images, customer contact info, delivery address, financial summary (subtotal, coupon discount, GST taxes, shipping fee, grand total).
+   - Chronological status timeline tracking every status progression and staff notes.
+
+8. **Customer Directory (`/admin/customers`)**
+   - Directory listing customer profiles, contact numbers, registration dates, total orders, and cumulative lifetime spend.
+   - Profile drawer with address books, order purchase history, relationship notes, and status toggles (`ACTIVE`, `INACTIVE`, `BLOCKED`).
+
+9. **Coupons & Promotions (`/admin/coupons`)**
+   - Coupon configuration: Percentage discount or fixed amount off.
+   - Controls for minimum order spend, maximum discount cap, total usage limit, and expiration dates.
+   - Instant activation/pause toggle.
+
+10. **Staff & Access Control (`/admin/staff`)**
+    - Super Admin-protected staff directory.
+    - Provision new staff accounts with bcrypt password encryption.
+    - Assign departmental roles and permissions.
+    - Account activation/deactivation switch.
+    - Secure password reset dialog.
+
+11. **Customer Enquiries (`/admin/enquiries`)**
+    - Concierge inbox tracking contact submissions from showroom visitors.
+    - Status progression: `NEW` $\to$ `IN_PROGRESS` $\to$ `RESOLVED` $\to$ `ARCHIVED`.
+    - Internal concierge notes and staff assignment.
+
+12. **Newsletter Management (`/admin/newsletter`)**
+    - Subscriber list with search and subscription status toggles.
+    - 1-Click CSV audience export download.
+
+13. **Business Reports & Analytics (`/admin/reports`)**
+    - 6 Comprehensive Reports: Product Report, Inventory Report, Low Stock Report, Out of Stock Report, Sales & Revenue Report, Customer Spend Report.
+    - Time filters: Today, Last 7 Days, Last 30 Days, This Month, Custom Date Range.
+    - Instant CSV export download for any active report.
+
+14. **Showroom Settings (`/admin/settings`)**
+    - Store name, brand tagline, support email, showroom phone, address, and operating hours.
+    - Operational parameters: Low-stock threshold trigger (units) and default GST tax rate (%).
+    - Self-service password change utility for the authenticated administrator.
 
 ---
 
-## ⚡ Quick Start & Installation
+## 🌐 Complete REST API Endpoints
+
+### Public Storefront Routes
+- `GET /api/health` – API status & DB connectivity
+- `GET /api/products` – Catalog query with filters & pagination
+- `GET /api/products/:identifier` – Product detail by ID or slug
+- `GET /api/categories` – Category list with product counts
+- `GET /api/brands` – Brand list with product counts
+- `GET /api/banners` – Homepage banners
+- `GET /api/testimonials` – Customer testimonials
+- `POST /api/newsletter/subscribe` – Newsletter opt-in
+- `POST /api/enquiries` – Public customer contact form submission
+
+### Protected Admin Routes (`/api/admin/*`)
+- `POST /api/admin/auth/login` – Staff authentication (sets HTTP-only cookie + returns JWT)
+- `POST /api/admin/auth/logout` – Invalidate session
+- `GET /api/admin/auth/me` – Current authenticated staff profile
+- `PUT /api/admin/auth/password` – Update current staff password
+- `GET /api/admin/dashboard/overview` – 8 Core KPI summary metrics
+- `GET /api/admin/dashboard/analytics` – Chart telemetry & top-moving items
+- `GET /api/admin/dashboard/recent-activity` – Administrative audit log feed
+- `GET /api/admin/products` – Paginated catalog with advanced filters
+- `POST /api/admin/products` – Create new product & log initial stock movement
+- `GET /api/admin/products/:id` – Product detail with inventory history
+- `PUT /api/admin/products/:id` – Update product fields & adjust stock
+- `DELETE /api/admin/products/:id` – Safe deletion / soft archival
+- `POST /api/admin/products/upload-images` – Multipart image file upload (Multer)
+- `GET /api/admin/categories` – Categories tree & counts
+- `POST /api/admin/categories` – Create category
+- `PUT /api/admin/categories/:id` – Update category & hierarchy
+- `DELETE /api/admin/categories/:id` – Safe deletion with product reassignment
+- `GET /api/admin/brands` – Brands list
+- `POST /api/admin/brands` – Create brand
+- `PUT /api/admin/brands/:id` – Update brand
+- `DELETE /api/admin/brands/:id` – Safe brand deletion
+- `GET /api/admin/inventory/overview` – Stock units, valuation & thresholds
+- `GET /api/admin/inventory` – Inventory list with cost valuations
+- `POST /api/admin/inventory/adjust` – Transactional stock adjustment & movement log
+- `GET /api/admin/inventory/movements` – Stock movement audit ledger
+- `GET /api/admin/orders` – Paginated order listing with status filters
+- `GET /api/admin/orders/:id` – Full order details, items & timeline
+- `PATCH /api/admin/orders/:id/status` – Update order/payment status with staff comment
+- `GET /api/admin/customers` – Customer directory & spend ranking
+- `GET /api/admin/customers/:id` – Customer profile, address book & order history
+- `PUT /api/admin/customers/:id` – Update customer status & concierge notes
+- `GET /api/admin/coupons` – Active and archived promotions
+- `POST /api/admin/coupons` – Create promotional coupon
+- `PUT /api/admin/coupons/:id` – Update coupon parameters
+- `DELETE /api/admin/coupons/:id` – Delete or archive coupon
+- `GET /api/admin/staff` – Staff directory *(Super Admin only)*
+- `POST /api/admin/staff` – Add staff member *(Super Admin only)*
+- `PUT /api/admin/staff/:id` – Update staff details *(Super Admin only)*
+- `PATCH /api/admin/staff/:id/status` – Toggle staff activation *(Super Admin only)*
+- `POST /api/admin/staff/:id/reset-password` – Reset staff credentials *(Super Admin only)*
+- `GET /api/admin/enquiries` – Concierge customer enquiries
+- `PATCH /api/admin/enquiries/:id/status` – Update enquiry status & staff notes
+- `DELETE /api/admin/enquiries/:id` – Remove enquiry
+- `GET /api/admin/newsletter` – Newsletter audience list
+- `GET /api/admin/newsletter/export` – Export subscriber emails to CSV
+- `PATCH /api/admin/newsletter/:id/status` – Toggle subscriber active status
+- `DELETE /api/admin/newsletter/:id` – Remove subscriber
+- `GET /api/admin/reports/summary` – Summary metrics for selected time window
+- `GET /api/admin/reports/products` – Product inventory report (JSON / CSV)
+- `GET /api/admin/reports/inventory` – Inventory health report (JSON / CSV)
+- `GET /api/admin/reports/sales` – Orders & sales ledger report (JSON / CSV)
+- `GET /api/admin/reports/customers` – Customer spend report (JSON / CSV)
+- `GET /api/admin/settings` – Showroom operational parameters
+- `PUT /api/admin/settings` – Update showroom configuration *(Super Admin only)*
+
+---
+
+## 🏃 Setup & Execution Instructions
 
 ### 1. Prerequisites
-- **Node.js** v18+ (tested on Node v24)
-- **npm** v9+
+- **Node.js:** v18+ (tested on Node.js v24)
+- **npm:** v9+
 
-### 2. Install Dependencies
-Run from the root directory:
-```bash
-npm run install:all
+### 2. Environment Configuration
+The server `.env` file is pre-configured for zero-configuration local SQLite development:
+```env
+PORT=5000
+DATABASE_URL="file:./dev.db"
+NODE_ENV=development
+JWT_SECRET=voltedge-super-secret-jwt-key-milestone-2-2026
 ```
-*(Or install in `server/` and `client/` individually)*
 
-### 3. Initialize & Seed Database
+### 3. Database Synchronization & Seeding
+From the root directory:
 ```bash
+# Push Prisma schema and seed Milestone 1 catalog + Milestone 2 showroom data
 npm run seed
 ```
-This initializes the database schema and populates it with 6 showroom categories, 8 authorized partner brands, 16 electronics products with images and technical specifications, promotional banners, and verified testimonials.
+*(Provisions 16 catalog products, 6 categories, 8 brands, 4 staff accounts, sample orders, customers, coupons, and enquiries).*
 
-### 4. Run Development Servers
-To run both backend API (`http://localhost:5000`) and frontend Vite dev server (`http://localhost:3000`) concurrently:
+### 4. Running the Application
 ```bash
+# Run both Frontend (port 3000) and Backend (port 5000) concurrently:
 npm run dev
 ```
+- **Customer Storefront:** `http://localhost:3000`
+- **Admin Management Console:** `http://localhost:3000/admin`
+- **Admin Login:** `http://localhost:3000/admin/login`
+- **Backend API & Health:** `http://localhost:5000/api/health`
 
-You can also run them separately:
-- **Backend:** `npm run dev:server`
-- **Frontend:** `npm run dev:client`
-
----
-
-## 📡 REST API Reference
-
-| Method | Endpoint | Description | Query Parameters |
-|---|---|---|---|
-| `GET` | `/api/health` | Service health status & database connectivity check | - |
-| `GET` | `/api/products` | Paginated product catalog | `search`, `category`, `brand`, `minPrice`, `maxPrice`, `inStock`, `featured`, `bestSeller`, `latestArrival`, `specialOffer`, `sort`, `page`, `limit` |
-| `GET` | `/api/products/:identifier` | Single product by ID or slug (includes related products) | - |
-| `GET` | `/api/categories` | All showroom categories with product count | - |
-| `GET` | `/api/brands` | All partner brands with product count | `featured=true` |
-| `GET` | `/api/banners` | Active showroom promotional banners | - |
-| `GET` | `/api/testimonials` | Verified customer testimonials | - |
-| `POST` | `/api/newsletter/subscribe` | Register newsletter subscriber | `{ "email": "user@example.com" }` |
-
-### Automated API Test Suite
-Run the test suite to verify all endpoints against live database queries:
+### 5. Running the Automated Test Suite
+Run the 28-point automated backend test suite:
 ```bash
 npm test
 ```
 
 ---
 
-## 🗄 Switching to PostgreSQL (Optional)
+## 📋 Milestone 2 Verification & Test Results
 
-By default, Milestone 1 runs on SQLite for zero-configuration out-of-the-box local testing.
+The automated test suite (`server/test-m2-api.js`) executes 28 comprehensive test scenarios:
 
-To connect to a PostgreSQL instance:
-1. In `server/.env`, set your connection URL:
-   ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/voltedge?schema=public"
-   ```
-2. Replace `server/prisma/schema.prisma` with `server/prisma/schema.postgresql.prisma` (or change `provider = "postgresql"`).
-3. Run:
-   ```bash
-   cd server
-   npx prisma db push
-   npx tsx prisma/seed.ts
-   ```
+| # | Test Scenario | Module | Result |
+|---|---|---|:---:|
+| 1 | Health Check endpoint & DB ping | System | **PASS** |
+| 2 | Super Admin login & JWT generation | Auth | **PASS** |
+| 3 | Invalid credentials rejection (401) | Security | **PASS** |
+| 4 | Sales Staff login with scoped role | Auth | **PASS** |
+| 5 | Session restoration via `/auth/me` | Auth | **PASS** |
+| 6 | RBAC: Sales Staff blocked from Staff module (403) | Security | **PASS** |
+| 7 | Dashboard Overview: 8 real database KPI counts | Dashboard | **PASS** |
+| 8 | Dashboard Analytics: Category & stock breakdown | Dashboard | **PASS** |
+| 9 | Audit Log: Administrative activity chronological feed | Audit | **PASS** |
+| 10 | Product Creation with SKU uniqueness & initial movement | Products | **PASS** |
+| 11 | Product Editing & pricing update | Products | **PASS** |
+| 12 | Inventory Valuation: Standard cost basis calculation | Inventory | **PASS** |
+| 13 | Stock Adjustment: Transactional update & movement entry | Inventory | **PASS** |
+| 14 | Stock Movement Ledger query by product | Inventory | **PASS** |
+| 15 | Order Listing with customer & total amounts | Orders | **PASS** |
+| 16 | Order Status Progression to `DELIVERED` with timeline note | Orders | **PASS** |
+| 17 | Customer Directory with lifetime spend aggregation | Customers | **PASS** |
+| 18 | Coupon Creation with discount threshold | Coupons | **PASS** |
+| 19 | Staff Creation & password encryption | Staff | **PASS** |
+| 20 | Customer Enquiries retrieval & search | Enquiries | **PASS** |
+| 21 | Enquiry Status Update to `IN_PROGRESS` with concierge note | Enquiries | **PASS** |
+| 22 | Newsletter Subscriber listing | Newsletter | **PASS** |
+| 23 | Newsletter CSV Export generation | Newsletter | **PASS** |
+| 24 | Business Reports Summary with 30-day date filter | Reports | **PASS** |
+| 25 | Product Report CSV generation | Reports | **PASS** |
+| 26 | Showroom Settings retrieval & update | Settings | **PASS** |
+| 27 | Public Customer Contact Enquiry submission | Storefront | **PASS** |
+| 28 | Milestone 1 Storefront Compatibility: Catalog retrieval | Storefront | **PASS** |
 
 ---
 
-## 🏆 Milestone 1 Verification Checklist
+## 🔮 Scope Boundaries & Preparation for Milestone 3
 
-- [x] Modern, mobile-first responsive UI built with Tailwind CSS & Inter / Plus Jakarta Sans fonts.
-- [x] Complete VOLTEDGE brand design system with Deep Navy `#10243A` and Electric Blue `#2563EB`.
-- [x] Fully populated Homepage with all 18 specified sections and clear visual hierarchy.
-- [x] Shop / All Products catalog page with real-time search, category/brand/price filtering, and sorting.
-- [x] Interactive Product Cards with original/selling price, discounts, ratings, stock status, wishlist, and cart actions.
-- [x] Interactive Cart & Wishlist slideout drawers with localStorage persistence and live badge counters.
-- [x] Quick View modal and dedicated Product Detail page with complete technical specifications.
-- [x] Scalable Express REST API backend with modular routing and centralized error handling.
-- [x] Prisma ORM database models and comprehensive showroom seed dataset.
-- [x] Zero TypeScript compilation or build errors across client and server.
-- [x] Reserved placeholders for Milestone 2+ modules (Admin, Orders, Payment Gateway).
+Per Milestone 2 specifications, the following advanced customer features are intentionally reserved for **Milestone 3 (Shopping Cart, Customer Checkout & Payment Gateway)** and **Milestone 4 (Customer Account Portal, Warranty Claims & Services)**:
 
+- Customer self-registration and public login
+- Customer order placement and live payment gateways (Razorpay / Stripe)
+- Automated transactional SMS / email order confirmations
+- Customer repair & service booking tracking
+- Multi-branch physical POS synchronization
+
+All underlying database models (`Customer`, `CustomerAddress`, `Order`, `OrderItem`, `OrderStatusHistory`, `Coupon`, `CouponUsage`) are fully defined, relational, and ready for immediate plug-and-play integration in Milestone 3.
+
+---
+
+**VOLTEDGE Electronics**  
+*Powering Your Digital World.*  
+*Milestone 2 Completed Successfully.*

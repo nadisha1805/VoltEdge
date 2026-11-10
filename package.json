@@ -1,15 +1,17 @@
 {
-  "name": "voltedge-electronics-milestone-1",
-  "version": "1.0.0",
-  "description": "VOLTEDGE Electronics - Milestone 1: Website Design & Technical Foundation",
+  "name": "voltedge-electronics-milestone-2",
+  "version": "2.0.0",
+  "description": "VOLTEDGE Electronics - Milestone 2: Admin Dashboard & Showroom Management System",
   "scripts": {
     "install:all": "npm install && cd server && npm install && cd ../client && npm install",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "build": "cd client && npm run build && cd ../server && npm run build",
-    "test": "cd server && npm test",
-    "seed": "cd server && npm run prisma:seed"
+    "test": "cd server && node test-m2-api.js",
+    "test:m1": "cd server && node test-api.js",
+    "seed": "cd server && npm run prisma:seed && npx tsx prisma/seed-m2.ts",
+    "seed:m2": "cd server && npx tsx prisma/seed-m2.ts"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

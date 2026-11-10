@@ -10,6 +10,7 @@ import {
   Zap,
   ChevronDown,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -144,8 +145,18 @@ export const Header: React.FC = () => {
                     Shopping Cart ({totalItems})
                   </button>
                 </div>
-                <div className="p-2 border-t border-slate-800 bg-slate-950/50 rounded-xl text-[11px] text-slate-400">
-                  Milestone 1 Preview • Customer Auth module arriving in Milestone 2
+                <div className="p-2 border-t border-slate-800 bg-slate-950/50 rounded-xl flex flex-col gap-1.5">
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsAccountOpen(false)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-400 hover:text-white hover:bg-slate-800 transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-brand-blue" />
+                    <span>Staff Admin Dashboard</span>
+                  </Link>
+                  <span className="text-[10px] text-slate-500 px-3">
+                    Milestone 2 • Management Console
+                  </span>
                 </div>
               </div>
             )}
