@@ -1,0 +1,100 @@
+// Prisma schema configured for PostgreSQL
+// Use this configuration in production or when running with a local/cloud PostgreSQL instance
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id           String    @id @default(uuid())
+  name         String    @unique
+  slug         String    @unique
+  description  String?
+  icon         String?
+  imageUrl     String?
+  featured     Boolean   @default(false)
+  displayOrder Int       @default(0)
+  products     Product[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Brand {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  logoUrl     String?
+  description String?
+  featured    Boolean   @default(false)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id                 String   @id @default(uuid())
+  name               String
+  slug               String   @unique
+  sku                String   @unique
+  brandId            String
+  brand              Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  categoryId         String
+  category           Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  description        String
+  shortDescription   String?
+  sellingPrice       Float
+  originalPrice      Float?
+  discountPercentage Float?
+  rating             Float    @default(0.0)
+  reviewCount        Int      @default(0)
+  stockStatus        String   @default("IN_STOCK")
+  stockQuantity      Int      @default(15)
+  images             String
+  primaryImage       String
+  tags               String?
+  specifications     String?
+  isFeatured         Boolean  @default(false)
+  isBestSeller       Boolean  @default(false)
+  isLatestArrival    Boolean  @default(false)
+  isSpecialOffer     Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model NewsletterSubscription {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  isActive     Boolean  @default(true)
+  subscribedAt DateTime @default(now())
+}
+
+model Banner {
+  id           String   @id @default(uuid())
+  title        String
+  subtitle     String?
+  badge        String?
+  ctaText      String   @default("Shop Now")
+  ctaLink      String   @default("/shop")
+  imageUrl     String
+  bgGradient   String?
+  active       Boolean  @default(true)
+  displayOrder Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Testimonial {
+  id               String   @id @default(uuid())
+  name             String
+  role             String?
+  avatar           String?
+  rating           Int      @default(5)
+  comment          String
+  verifiedPurchase Boolean  @default(true)
+  createdAt        DateTime @default(now())
+}
