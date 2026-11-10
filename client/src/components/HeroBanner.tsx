@@ -120,3 +120,4 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners }) => {
     </section>
   );
 };
+

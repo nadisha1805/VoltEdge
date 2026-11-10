@@ -51,3 +51,4 @@ export const FeaturedBrandsSection: React.FC<FeaturedBrandsProps> = ({ brands })
     </section>
   );
 };
+

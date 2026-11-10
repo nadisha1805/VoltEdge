@@ -240,3 +240,4 @@ To connect to a PostgreSQL instance:
 - [x] Prisma ORM database models and comprehensive showroom seed dataset.
 - [x] Zero TypeScript compilation or build errors across client and server.
 - [x] Reserved placeholders for Milestone 2+ modules (Admin, Orders, Payment Gateway).
+

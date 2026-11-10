@@ -88,3 +88,4 @@ export const CategorySection: React.FC<CategorySectionProps> = ({ categories }) 
     </section>
   );
 };
+

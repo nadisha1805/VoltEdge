@@ -98,3 +98,4 @@ model Testimonial {
   verifiedPurchase Boolean  @default(true)
   createdAt        DateTime @default(now())
 }
+

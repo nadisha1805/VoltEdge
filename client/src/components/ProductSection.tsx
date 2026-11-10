@@ -74,3 +74,4 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
     </section>
   );
 };
+

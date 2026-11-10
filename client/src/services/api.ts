@@ -76,3 +76,4 @@ export const subscribeNewsletter = async (email: string): Promise<{ success: boo
   const response = await apiClient.post<{ success: boolean; message: string }>('/newsletter/subscribe', { email });
   return response.data;
 };
+

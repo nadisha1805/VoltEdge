@@ -68,3 +68,4 @@ export const useWishlist = () => {
   if (!context) throw new Error('useWishlist must be used within WishlistProvider');
   return context;
 };
+
