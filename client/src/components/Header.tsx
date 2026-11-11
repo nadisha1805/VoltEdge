@@ -11,16 +11,27 @@ import {
   ChevronDown,
   Sparkles,
   ShieldCheck,
+  Scale,
+  Package,
+  LogOut,
+  MapPin,
+  Settings,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCompare } from '../context/CompareContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 
 export const Header: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+
   const { totalItems, setIsCartOpen } = useCart();
   const { wishlistCount, setIsWishlistOpen } = useWishlist();
+  const { compareCount } = useCompare();
+  const { customer, isAuthenticated, logout } = useCustomerAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +51,7 @@ export const Header: React.FC = () => {
     { name: 'Audio', path: '/shop?category=audio-headphones' },
     { name: 'Gaming', path: '/shop?category=gaming-consoles' },
     { name: 'Smart Home', path: '/shop?category=smart-home' },
+    { name: 'Compare', path: '/compare', isCompare: true },
     { name: 'Special Offers', path: '/shop?specialOffer=true', isSpecial: true },
   ];
 
@@ -88,9 +100,23 @@ export const Header: React.FC = () => {
           </button>
         </form>
 
-        {/* Action Placeholder Buttons */}
-        <div className="flex items-center gap-2 sm:gap-4">
-          {/* Account Icon Placeholder */}
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Comparison Matrix Link */}
+          <Link
+            to="/compare"
+            className="p-2 sm:px-2.5 sm:py-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors relative"
+            title="Product Comparison"
+          >
+            <Scale className="w-5 h-5" />
+            {compareCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-cyan-500 text-slate-950 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-md">
+                {compareCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Account Dropdown */}
           <div className="relative">
             <button
               onClick={() => setIsAccountOpen(!isAccountOpen)}
@@ -98,10 +124,12 @@ export const Header: React.FC = () => {
               title="Customer Account"
               aria-label="Account menu"
             >
-              <User className="w-5 h-5" />
+              <User className="w-5 h-5 text-cyan-400" />
               <span className="hidden xl:inline text-xs font-medium text-left">
-                <span className="block text-slate-400 text-[10px]">Welcome</span>
-                <span>My Account</span>
+                <span className="block text-slate-400 text-[10px]">
+                  {isAuthenticated ? `Hi, ${customer?.firstName}` : 'Sign In'}
+                </span>
+                <span>{isAuthenticated ? 'My Account' : 'Customer Portal'}</span>
               </span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden xl:block" />
             </button>
@@ -112,40 +140,68 @@ export const Header: React.FC = () => {
                 className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-elevated p-2 text-sm z-50 animate-in fade-in zoom-in-95 duration-150"
                 onMouseLeave={() => setIsAccountOpen(false)}
               >
-                <div className="px-3 py-2 border-b border-slate-800">
-                  <p className="text-xs text-slate-400">Account Placeholder</p>
-                  <p className="font-semibold text-white">VOLTEDGE Guest</p>
-                </div>
-                <div className="py-1">
-                  <button
-                    onClick={() => {
-                      setIsAccountOpen(false);
-                      navigate('/shop');
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
-                  >
-                    Browse Catalog
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsAccountOpen(false);
-                      setIsWishlistOpen(true);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
-                  >
-                    View Saved Wishlist ({wishlistCount})
-                  </button>
-                  <button
-                    onClick={() => {
-                      setIsAccountOpen(false);
-                      setIsCartOpen(true);
-                    }}
-                    className="w-full text-left px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
-                  >
-                    Shopping Cart ({totalItems})
-                  </button>
-                </div>
-                <div className="p-2 border-t border-slate-800 bg-slate-950/50 rounded-xl flex flex-col gap-1.5">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2 border-b border-slate-800">
+                      <p className="text-xs text-slate-400">Signed in as</p>
+                      <p className="font-semibold text-white truncate">{customer?.email}</p>
+                    </div>
+                    <div className="py-1">
+                      <Link
+                        to="/account"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
+                      >
+                        <User className="w-3.5 h-3.5 text-cyan-400" /> Account Dashboard
+                      </Link>
+                      <Link
+                        to="/account"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
+                      >
+                        <Package className="w-3.5 h-3.5 text-blue-400" /> My Orders & Invoices
+                      </Link>
+                      <Link
+                        to="/account"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-xs font-medium"
+                      >
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Delivery Addresses
+                      </Link>
+                      <button
+                        onClick={() => {
+                          setIsAccountOpen(false);
+                          logout();
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-rose-400 hover:bg-slate-800 text-xs font-medium"
+                      >
+                        <LogOut className="w-3.5 h-3.5" /> Sign Out
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="px-3 py-2 border-b border-slate-800 text-center">
+                      <p className="text-xs text-slate-400 mb-2">Welcome to VOLTEDGE</p>
+                      <Link
+                        to="/login"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="block w-full py-2 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-bold rounded-xl text-xs shadow-md mb-1.5"
+                      >
+                        Customer Login
+                      </Link>
+                      <Link
+                        to="/register"
+                        onClick={() => setIsAccountOpen(false)}
+                        className="text-[11px] text-cyan-400 hover:underline"
+                      >
+                        Create an account
+                      </Link>
+                    </div>
+                  </>
+                )}
+
+                <div className="p-2 border-t border-slate-800 bg-slate-950/50 rounded-xl flex flex-col gap-1 mt-1">
                   <Link
                     to="/admin"
                     onClick={() => setIsAccountOpen(false)}
@@ -177,9 +233,9 @@ export const Header: React.FC = () => {
             )}
           </button>
 
-          {/* Shopping Cart Icon */}
-          <button
-            onClick={() => setIsCartOpen(true)}
+          {/* Shopping Cart Icon (Links to /cart or drawer) */}
+          <Link
+            to="/cart"
             className="flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-xl bg-brand-blue/15 hover:bg-brand-blue/25 border border-brand-blue/30 text-white transition-all relative group"
             title="Shopping Cart"
             aria-label="Shopping Cart"
@@ -195,7 +251,7 @@ export const Header: React.FC = () => {
             <span className="hidden sm:inline text-xs font-semibold text-slate-200">
               Cart
             </span>
-          </button>
+          </Link>
 
           {/* Mobile menu button */}
           <button
@@ -227,10 +283,13 @@ export const Header: React.FC = () => {
                         ? 'bg-brand-blue text-white shadow-sm'
                         : link.isSpecial
                         ? 'text-amber-400 hover:text-amber-300 hover:bg-amber-400/10'
+                        : link.isCompare
+                        ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-400/10'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                     }`}
                   >
                     {link.isSpecial && <Sparkles className="w-3.5 h-3.5 text-amber-400" />}
+                    {link.isCompare && <Scale className="w-3.5 h-3.5 text-cyan-400" />}
                     {link.name}
                   </Link>
                 </li>
@@ -243,36 +302,24 @@ export const Header: React.FC = () => {
       {/* Mobile Menu Drawer */}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-brand-navyDark border-t border-slate-800 p-4 animate-in slide-in-from-top-2 duration-200">
-          {/* Mobile Search */}
           <form onSubmit={handleSearchSubmit} className="relative mb-4">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
-              className="w-full pl-10 pr-20 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 text-sm focus:outline-none focus:border-brand-blue"
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-400 text-sm focus:outline-none focus:border-brand-blue"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <button
-              type="submit"
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-brand-blue text-white px-3 py-1 rounded-lg text-xs font-semibold"
-            >
-              Search
-            </button>
           </form>
 
-          {/* Links list */}
           <ul className="space-y-1">
             {navLinks.map((link) => (
               <li key={link.name}>
                 <Link
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    link.isSpecial
-                      ? 'text-amber-400 bg-amber-400/10'
-                      : 'text-slate-200 hover:bg-slate-800'
-                  }`}
+                  className="block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 text-sm font-semibold"
                 >
                   {link.name}
                 </Link>
@@ -284,4 +331,3 @@ export const Header: React.FC = () => {
     </header>
   );
 };
-

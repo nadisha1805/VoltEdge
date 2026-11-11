@@ -119,6 +119,9 @@ model Product {
 
   inventoryMovements InventoryMovement[]
   orderItems         OrderItem[]
+  cartItems          CartItem[]
+  wishlistItems      WishlistItem[]
+  reviews            ProductReview[]
 }
 
 model InventoryMovement {
@@ -142,29 +145,36 @@ model InventoryMovement {
 // -------------------------------------------------------------
 
 model Customer {
-  id          String            @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String            @unique
-  phone       String?
-  avatar      String?
-  status      String            @default("ACTIVE") // "ACTIVE", "INACTIVE", "BLOCKED"
-  totalOrders Int               @default(0)
-  totalSpent  Float             @default(0.0)
-  notes       String?
-  isArchived  Boolean           @default(false)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id                  String               @id @default(uuid())
+  firstName           String
+  lastName            String
+  email               String               @unique
+  passwordHash        String?              // Set during customer registration
+  phone               String?
+  avatar              String?
+  status              String               @default("ACTIVE") // "ACTIVE", "INACTIVE", "BLOCKED"
+  totalOrders         Int                  @default(0)
+  totalSpent          Float                @default(0.0)
+  notes               String?
+  isArchived          Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
 
-  addresses   CustomerAddress[]
-  orders      Order[]
+  addresses           CustomerAddress[]
+  orders              Order[]
+  cart                Cart?
+  wishlist            Wishlist?
+  reviews             ProductReview[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model CustomerAddress {
   id           String   @id @default(uuid())
   customerId   String
   customer     Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  addressType  String   @default("SHIPPING") // "SHIPPING", "BILLING"
+  fullName     String?
+  phone        String?
+  addressType  String   @default("HOME") // "HOME", "WORK", "OTHER", "SHIPPING", "BILLING"
   addressLine1 String
   addressLine2 String?
   city         String
@@ -176,8 +186,67 @@ model CustomerAddress {
   updatedAt    DateTime @updatedAt
 }
 
+model PasswordResetToken {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  token      String   @unique
+  expiresAt  DateTime
+  used       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
 // -------------------------------------------------------------
-// 5. ORDERS & STATUS HISTORY
+// 5. SHOPPING CART & WISHLIST
+// -------------------------------------------------------------
+
+model Cart {
+  id         String     @id @default(uuid())
+  customerId String?    @unique
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  guestToken String?    @unique
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  items      CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+model Wishlist {
+  id         String         @id @default(uuid())
+  customerId String         @unique
+  customer   Customer       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  items      WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([wishlistId, productId])
+}
+
+// -------------------------------------------------------------
+// 6. ORDERS, STATUS HISTORY, PAYMENTS & INVOICES
 // -------------------------------------------------------------
 
 model Order {
@@ -190,13 +259,14 @@ model Order {
   customerPhone    String?
   shippingAddress  String               // Formatted / JSON address
   billingAddress   String?              // Formatted / JSON address
+  shippingMethod   String               @default("STANDARD") // "STANDARD", "EXPRESS"
   subtotal         Float
   discountAmount   Float                @default(0.0)
   taxAmount        Float                @default(0.0)
   shippingFee      Float                @default(0.0)
   totalAmount      Float
-  paymentStatus    String               @default("PENDING") // "PENDING", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"
-  paymentMethod    String               @default("CASH_ON_DELIVERY") // "CREDIT_CARD", "UPI", "NET_BANKING", "CASH_ON_DELIVERY"
+  paymentStatus    String               @default("PENDING") // "PENDING", "PROCESSING", "PAID", "FAILED", "REFUNDED", "PARTIALLY_REFUNDED"
+  paymentMethod    String               @default("CASH_ON_DELIVERY") // "RAZORPAY", "CASH_ON_DELIVERY", "CREDIT_CARD", "UPI", "NET_BANKING"
   paymentReference String?
   orderStatus      String               @default("PENDING") // "PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"
   notes            String?
@@ -206,6 +276,8 @@ model Order {
 
   items            OrderItem[]
   statusHistory    OrderStatusHistory[]
+  payment          Payment?
+  invoice          Invoice?
 }
 
 model OrderItem {
@@ -233,6 +305,62 @@ model OrderStatusHistory {
   adminUser   AdminUser? @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
   updatedBy   String     // Staff name or "System"
   createdAt   DateTime   @default(now())
+}
+
+model Payment {
+  id                 String   @id @default(uuid())
+  orderId            String   @unique
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount             Float
+  currency           String   @default("INR")
+  method             String   // "RAZORPAY", "CASH_ON_DELIVERY"
+  status             String   @default("PENDING") // "PENDING", "PROCESSING", "PAID", "FAILED", "REFUNDED"
+  razorpayOrderId    String?
+  razorpayPaymentId  String?
+  razorpaySignature  String?
+  failureReason      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model PaymentWebhookEvent {
+  id         String   @id @default(uuid())
+  eventId    String   @unique
+  eventType  String
+  payload    String   // JSON stringified webhook payload
+  processed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  invoiceNumber String   @unique // e.g. "INV-2026-1001"
+  invoiceData   String   // JSON snapshot of billing, items, tax breakdown, seller details
+  pdfPath       String?
+  issuedAt      DateTime @default(now())
+}
+
+// -------------------------------------------------------------
+// 7. PRODUCT REVIEWS & RATINGS
+// -------------------------------------------------------------
+
+model ProductReview {
+  id                 String   @id @default(uuid())
+  productId          String
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId         String
+  customer           Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating             Int      @default(5)
+  title              String?
+  comment            String
+  isVerifiedPurchase Boolean  @default(false)
+  status             String   @default("APPROVED") // "PENDING", "APPROVED", "REJECTED"
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([productId, customerId])
 }
 
 // -------------------------------------------------------------

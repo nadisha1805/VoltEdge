@@ -13,6 +13,16 @@ import testimonialsRouter from './routes/testimonials.js';
 import newsletterRouter from './routes/newsletter.js';
 import enquiriesRouter from './routes/enquiries.js';
 
+// Milestone 3: Customer Portal, Cart, Wishlist, Checkout, Payments & Reviews Routers
+import customerAuthRouter from './routes/customerAuth.js';
+import customerProfileRouter from './routes/customerProfile.js';
+import cartRouter from './routes/cart.js';
+import wishlistRouter from './routes/wishlist.js';
+import checkoutRouter from './routes/checkout.js';
+import paymentsRouter from './routes/payments.js';
+import customerOrdersRouter from './routes/customerOrders.js';
+import reviewsRouter from './routes/reviews.js';
+
 // Admin Routers
 import adminAuthRouter from './routes/admin/auth.js';
 import adminDashboardRouter from './routes/admin/dashboard.js';
@@ -87,6 +97,17 @@ app.use('/api/banners', bannersRouter);
 app.use('/api/testimonials', testimonialsRouter);
 app.use('/api/newsletter', newsletterRouter);
 app.use('/api/enquiries', enquiriesRouter);
+
+// Milestone 3: Customer Portal & E-Commerce APIs
+app.use('/api/auth', customerAuthRouter);
+app.use('/api/customer', customerProfileRouter);
+app.use('/api/cart', cartRouter);
+app.use('/api/wishlist', wishlistRouter);
+app.use('/api/checkout', checkoutRouter);
+app.use('/api/payments', paymentsRouter);
+app.use('/api/customer/orders', customerOrdersRouter);
+app.use('/api/products', reviewsRouter); // For /api/products/:productId/reviews
+app.use('/api/reviews', reviewsRouter); // For /api/reviews/:id
 
 // 2. Admin Management Routes
 app.use('/api/admin/auth', adminAuthRouter);
