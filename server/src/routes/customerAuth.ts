@@ -330,7 +330,8 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
       },
     });
 
-    const resetLink = `http://localhost:5173/reset-password?token=${token}`;
+    const clientBaseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink = `${clientBaseUrl.replace(/\/$/, '')}/reset-password?token=${token}`;
     const tmpl = emailTemplates.passwordReset(`${customer.firstName} ${customer.lastName}`, resetLink);
     await sendEmailNotification({
       to: customer.email,

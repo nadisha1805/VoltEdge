@@ -57,7 +57,9 @@ export const sendEmailNotification = async (options: EmailOptions): Promise<bool
 };
 
 export const emailTemplates = {
-  welcome: (name: string) => ({
+  welcome: (name: string) => {
+    const clientBaseUrl = process.env.CLIENT_URL || process.env.FRONTEND_URL || 'http://localhost:5173';
+    return {
     subject: 'Welcome to VOLTEDGE Electronics! ⚡',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
@@ -70,7 +72,7 @@ export const emailTemplates = {
           <p style="color: #475569; line-height: 1.6;">Thank you for registering at VOLTEDGE Electronics. Your account is now active and ready to explore our premium electronic showroom.</p>
           <p style="color: #475569; line-height: 1.6;">Enjoy our latest gadgets, smartphones, gaming laptops, and home audio devices with express delivery and official brand warranties.</p>
           <div style="text-align: center; margin: 28px 0;">
-            <a href="http://localhost:5173/shop" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Explore The Showroom</a>
+            <a href="${clientBaseUrl.replace(/\/$/, '')}/shop" style="background-color: #2563eb; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Explore The Showroom</a>
           </div>
         </div>
         <div style="border-top: 1px solid #e5e7eb; padding-top: 16px; font-size: 12px; color: #94a3b8; text-align: center;">
@@ -78,7 +80,8 @@ export const emailTemplates = {
         </div>
       </div>
     `,
-  }),
+  };
+  },
 
   passwordReset: (name: string, resetLink: string) => ({
     subject: 'VOLTEDGE Electronics - Password Reset Request',
