@@ -1329,6 +1329,425 @@ export const CustomerAccountPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL 1: WARRANTY CLAIM MODAL */}
+      {isWarrantyModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Award className="w-5 h-5 text-blue-400" />
+                Submit Warranty Claim
+              </h3>
+              <button
+                onClick={() => setIsWarrantyModalOpen(false)}
+                className="text-slate-400 hover:text-white font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await submitWarrantyClaim({
+                    ...warrantyForm,
+                    customerName: `${customer.firstName} ${customer.lastName}`,
+                    customerEmail: customer.email,
+                    customerPhone: customer.phone,
+                  });
+                  showToast('Warranty claim submitted successfully!', 'success');
+                  setIsWarrantyModalOpen(false);
+                  loadMilestone4Data();
+                } catch (err: any) {
+                  showToast(err.response?.data?.message || 'Failed to submit warranty claim', 'error');
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Select Purchased Order</label>
+                <select
+                  required
+                  value={warrantyForm.orderId}
+                  onChange={(e) => {
+                    const ordId = e.target.value;
+                    const selectedOrd = orders.find((o) => o.id === ordId);
+                    setWarrantyForm({
+                      ...warrantyForm,
+                      orderId: ordId,
+                      productId: selectedOrd?.items[0]?.productId || '',
+                    });
+                  }}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="">-- Choose an Order --</option>
+                  {orders.map((ord) => (
+                    <option key={ord.id} value={ord.id}>
+                      {ord.orderNumber} ({new Date(ord.createdAt).toLocaleDateString()}) - ₹
+                      {ord.totalAmount.toLocaleString('en-IN')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {warrantyForm.orderId && (
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Select Product in Order</label>
+                  <select
+                    required
+                    value={warrantyForm.productId}
+                    onChange={(e) => setWarrantyForm({ ...warrantyForm, productId: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  >
+                    <option value="">-- Choose Product --</option>
+                    {orders
+                      .find((o) => o.id === warrantyForm.orderId)
+                      ?.items.map((it) => (
+                        <option key={it.id} value={it.productId || ''}>
+                          {it.productName}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Defect Category</label>
+                  <select
+                    value={warrantyForm.issueCategory}
+                    onChange={(e) => setWarrantyForm({ ...warrantyForm, issueCategory: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  >
+                    <option value="HARDWARE_DEFECT">Hardware Defect</option>
+                    <option value="SCREEN_DISPLAY">Screen / Display Issue</option>
+                    <option value="BATTERY_POWER">Battery / Power Failure</option>
+                    <option value="CONNECTIVITY">Connectivity / Wi-Fi / Bluetooth</option>
+                    <option value="OTHER">Other Malfunction</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Product Serial Number</label>
+                  <input
+                    type="text"
+                    value={warrantyForm.serialNumber}
+                    onChange={(e) => setWarrantyForm({ ...warrantyForm, serialNumber: e.target.value })}
+                    placeholder="e.g. SN-889021 (if printed)"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Detailed Problem Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={warrantyForm.issueDescription}
+                  onChange={(e) => setWarrantyForm({ ...warrantyForm, issueDescription: e.target.value })}
+                  placeholder="Describe the issue, symptoms, and troubleshooting attempted..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsWarrantyModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md"
+                >
+                  Submit Claim
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: SERVICE BOOKING MODAL */}
+      {isServiceModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-blue-400" />
+                Book Electronics Service & Repair
+              </h3>
+              <button
+                onClick={() => setIsServiceModalOpen(false)}
+                className="text-slate-400 hover:text-white font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  await submitServiceRequest({
+                    ...serviceForm,
+                    customerName: `${customer.firstName} ${customer.lastName}`,
+                    customerEmail: customer.email,
+                    customerPhone: customer.phone || '9876543210',
+                  });
+                  showToast('Service ticket booked successfully!', 'success');
+                  setIsServiceModalOpen(false);
+                  loadMilestone4Data();
+                } catch (err: any) {
+                  showToast(err.response?.data?.message || 'Failed to book service', 'error');
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Device Category</label>
+                  <select
+                    value={serviceForm.productCategory}
+                    onChange={(e) => setServiceForm({ ...serviceForm, productCategory: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  >
+                    <option value="Smartphones">Smartphones</option>
+                    <option value="Laptops">Laptops</option>
+                    <option value="Televisions">Televisions</option>
+                    <option value="Refrigerators">Refrigerators</option>
+                    <option value="Washing Machines">Washing Machines</option>
+                    <option value="Air Conditioners">Air Conditioners</option>
+                    <option value="Audio Devices">Audio Devices</option>
+                    <option value="Other Electronics">Other Electronics</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Service Type</label>
+                  <select
+                    value={serviceForm.serviceType}
+                    onChange={(e) => setServiceForm({ ...serviceForm, serviceType: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  >
+                    <option value="IN_STORE">In-Store Showroom Service</option>
+                    <option value="TECHNICIAN_VISIT">Doorstep Technician Visit</option>
+                    <option value="PRODUCT_INSPECTION">Free Diagnosis & Inspection</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Product / Brand Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={serviceForm.productName}
+                    onChange={(e) => setServiceForm({ ...serviceForm, productName: e.target.value })}
+                    placeholder="e.g. Sony Bravia 55' / Dell XPS"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Model / Serial Number</label>
+                  <input
+                    type="text"
+                    value={serviceForm.productModel}
+                    onChange={(e) => setServiceForm({ ...serviceForm, productModel: e.target.value })}
+                    placeholder="e.g. XR-55A80K"
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  />
+                </div>
+              </div>
+
+              {serviceForm.serviceType === 'TECHNICIAN_VISIT' && (
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Technician Visit Address</label>
+                  <input
+                    type="text"
+                    required
+                    value={serviceForm.serviceAddress}
+                    onChange={(e) => setServiceForm({ ...serviceForm, serviceAddress: e.target.value })}
+                    placeholder="House/Flat No, Apartment, Landmark, City..."
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Problem Description</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={serviceForm.problemDescription}
+                  onChange={(e) => setServiceForm({ ...serviceForm, problemDescription: e.target.value })}
+                  placeholder="Describe device issue, noise, startup errors..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsServiceModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md"
+                >
+                  Book Service
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: RETURN REQUEST MODAL */}
+      {isReturnModalOpen && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 text-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <RotateCcw className="w-5 h-5 text-blue-400" />
+                Request Product Return or Cancellation
+              </h3>
+              <button
+                onClick={() => setIsReturnModalOpen(false)}
+                className="text-slate-400 hover:text-white font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                try {
+                  const ord = orders.find((o) => o.id === returnForm.orderId);
+                  const selectedItem = ord?.items.find((i) => i.productId === returnForm.productId) || ord?.items[0];
+
+                  await submitReturnRequest({
+                    orderId: returnForm.orderId,
+                    reasonCategory: returnForm.reasonCategory,
+                    reasonDetails: returnForm.reasonDetails,
+                    items: [
+                      {
+                        productId: selectedItem?.productId,
+                        quantity: selectedItem?.quantity || 1,
+                      },
+                    ],
+                  });
+                  showToast('Return request submitted for inspection!', 'success');
+                  setIsReturnModalOpen(false);
+                  loadMilestone4Data();
+                } catch (err: any) {
+                  showToast(err.response?.data?.message || 'Failed to submit return request', 'error');
+                }
+              }}
+              className="space-y-4 text-xs"
+            >
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Select Order</label>
+                <select
+                  required
+                  value={returnForm.orderId}
+                  onChange={(e) => {
+                    const ordId = e.target.value;
+                    const ord = orders.find((o) => o.id === ordId);
+                    setReturnForm({
+                      ...returnForm,
+                      orderId: ordId,
+                      productId: ord?.items[0]?.productId || '',
+                    });
+                  }}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="">-- Choose Order to Return --</option>
+                  {orders.map((ord) => (
+                    <option key={ord.id} value={ord.id}>
+                      {ord.orderNumber} ({ord.orderStatus}) - ₹{ord.totalAmount.toLocaleString('en-IN')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {returnForm.orderId && (
+                <div>
+                  <label className="block font-semibold text-slate-300 mb-1">Product to Return</label>
+                  <select
+                    required
+                    value={returnForm.productId}
+                    onChange={(e) => setReturnForm({ ...returnForm, productId: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                  >
+                    {orders
+                      .find((o) => o.id === returnForm.orderId)
+                      ?.items.map((it) => (
+                        <option key={it.id} value={it.productId || ''}>
+                          {it.productName} (₹{it.unitPrice.toLocaleString('en-IN')})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Return Reason</label>
+                <select
+                  value={returnForm.reasonCategory}
+                  onChange={(e) => setReturnForm({ ...returnForm, reasonCategory: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-white"
+                >
+                  <option value="DAMAGED_PRODUCT">Damaged Product on Arrival</option>
+                  <option value="DEFECTIVE_PRODUCT">Defective / Non-Functional Hardware</option>
+                  <option value="INCORRECT_PRODUCT">Incorrect Item Received</option>
+                  <option value="MISSING_ACCESSORIES">Missing Cable / Power Supply / Accessories</option>
+                  <option value="NOT_AS_DESCRIBED">Specifications Differ from Storefront</option>
+                  <option value="OTHER">Other Reason</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-slate-300 mb-1">Reason Details & Comments</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={returnForm.reasonDetails}
+                  onChange={(e) => setReturnForm({ ...returnForm, reasonDetails: e.target.value })}
+                  placeholder="Detail condition of packaging, seal, and reasons for return..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsReturnModalOpen(false)}
+                  className="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl shadow-md"
+                >
+                  Submit Return Request
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
