@@ -14,6 +14,9 @@ import {
   Loader2,
   FileText,
   Table,
+  Award,
+  Wrench,
+  RotateCcw,
 } from 'lucide-react';
 import { getReportsSummary, getReportData } from '../../services/adminApi';
 
@@ -23,7 +26,11 @@ type ReportType =
   | 'low-stock'
   | 'out-of-stock'
   | 'sales'
-  | 'customers';
+  | 'customers'
+  | 'warranties'
+  | 'services'
+  | 'returns'
+  | 'coupons';
 
 export const AdminReportsPage: React.FC = () => {
   const [activeReport, setActiveReport] = useState<ReportType>('products');
@@ -102,6 +109,10 @@ export const AdminReportsPage: React.FC = () => {
     { id: 'out-of-stock', name: 'Out of Stock Report', icon: AlertTriangle },
     { id: 'sales', name: 'Sales & Revenue Report', icon: TrendingUp },
     { id: 'customers', name: 'Customer Report', icon: Users },
+    { id: 'warranties', name: 'Warranty Claims Report', icon: Award },
+    { id: 'services', name: 'Service Tickets Report', icon: Wrench },
+    { id: 'returns', name: 'Returns & Refunds Report', icon: RotateCcw },
+    { id: 'coupons', name: 'Coupons Performance', icon: Percent },
   ];
 
   return (

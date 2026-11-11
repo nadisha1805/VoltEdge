@@ -208,3 +208,86 @@ export const submitProductReview = async (productId: string, data: { rating: num
   return res.data;
 };
 
+// -------------------------------------------------------------
+// 9. MILESTONE 4: WARRANTY CLAIMS APIS
+// -------------------------------------------------------------
+export const submitWarrantyClaim = async (data: any) => {
+  const res = await customerApiClient.post('/warranty/claims', data);
+  return res.data;
+};
+
+export const getCustomerWarrantyClaims = async () => {
+  const res = await customerApiClient.get('/customer/warranty-claims');
+  return res.data.claims;
+};
+
+// -------------------------------------------------------------
+// 10. MILESTONE 4: REPAIR & SERVICE REQUEST APIS
+// -------------------------------------------------------------
+export const submitServiceRequest = async (data: any) => {
+  const res = await customerApiClient.post('/service/requests', data);
+  return res.data;
+};
+
+export const getCustomerServiceRequests = async () => {
+  const res = await customerApiClient.get('/customer/service-requests');
+  return res.data.requests;
+};
+
+// -------------------------------------------------------------
+// 11. MILESTONE 4: RETURNS & REFUNDS APIS
+// -------------------------------------------------------------
+export const submitReturnRequest = async (data: any) => {
+  const res = await customerApiClient.post('/returns/requests', data);
+  return res.data;
+};
+
+export const getCustomerReturns = async () => {
+  const res = await customerApiClient.get('/customer/returns');
+  return res.data.returns;
+};
+
+// -------------------------------------------------------------
+// 12. MILESTONE 4: ORDER DELIVERY TRACKING
+// -------------------------------------------------------------
+export const getOrderDeliveryTracking = async (orderId: string) => {
+  const res = await customerApiClient.get(`/orders/${orderId}/delivery`);
+  return res.data.delivery;
+};
+
+// -------------------------------------------------------------
+// 13. MILESTONE 4: NOTIFICATIONS APIS
+// -------------------------------------------------------------
+export const getCustomerNotifications = async () => {
+  const res = await customerApiClient.get('/customer/notifications');
+  return res.data;
+};
+
+export const markCustomerNotificationRead = async (id: string) => {
+  const res = await customerApiClient.patch(`/customer/notifications/${id}/read`);
+  return res.data;
+};
+
+// -------------------------------------------------------------
+// 14. MILESTONE 4: RECENTLY VIEWED PRODUCTS
+// -------------------------------------------------------------
+export const recordProductView = async (productId: string) => {
+  try {
+    const res = await customerApiClient.post('/products/view', { productId });
+    return res.data;
+  } catch (e) {
+    // Silent fail if unauthenticated or error
+    return null;
+  }
+};
+
+export const getRecentlyViewed = async () => {
+  try {
+    const res = await customerApiClient.get('/customer/recently-viewed');
+    return res.data.products || [];
+  } catch (e) {
+    return [];
+  }
+};
+
+

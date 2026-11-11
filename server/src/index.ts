@@ -23,6 +23,43 @@ import paymentsRouter from './routes/payments.js';
 import customerOrdersRouter from './routes/customerOrders.js';
 import reviewsRouter from './routes/reviews.js';
 
+// Milestone 4: Advanced Features & Workflows
+import {
+  submitWarrantyClaim,
+  getCustomerWarrantyClaims,
+  getAdminWarrantyClaims,
+  updateAdminWarrantyClaim,
+} from './routes/warranty.js';
+import {
+  submitServiceRequest,
+  getCustomerServiceRequests,
+  getAdminServiceRequests,
+  updateAdminServiceRequest,
+} from './routes/service.js';
+import {
+  submitReturnRequest,
+  getCustomerReturns,
+  getAdminReturns,
+  updateAdminReturnStatus,
+  processAdminRefund,
+} from './routes/returns.js';
+import {
+  getOrderDeliveryTracking,
+  updateOrderDeliveryTracking,
+} from './routes/delivery.js';
+import {
+  getCustomerNotifications,
+  markCustomerNotificationRead,
+  getAdminNotifications,
+  markAdminNotificationRead,
+} from './routes/notifications.js';
+import {
+  recordProductView,
+  getRecentlyViewed,
+} from './routes/recentlyViewed.js';
+import { verifyCustomerToken } from './middleware/customerAuth.js';
+import { verifyAdminToken } from './middleware/auth.js';
+
 // Admin Routers
 import adminAuthRouter from './routes/admin/auth.js';
 import adminDashboardRouter from './routes/admin/dashboard.js';
@@ -109,6 +146,24 @@ app.use('/api/customer/orders', customerOrdersRouter);
 app.use('/api/products', reviewsRouter); // For /api/products/:productId/reviews
 app.use('/api/reviews', reviewsRouter); // For /api/reviews/:id
 
+// Milestone 4: Customer APIs
+app.post('/api/warranty/claims', verifyCustomerToken, submitWarrantyClaim);
+app.get('/api/customer/warranty-claims', verifyCustomerToken, getCustomerWarrantyClaims);
+
+app.post('/api/service/requests', verifyCustomerToken, submitServiceRequest);
+app.get('/api/customer/service-requests', verifyCustomerToken, getCustomerServiceRequests);
+
+app.post('/api/returns/requests', verifyCustomerToken, submitReturnRequest);
+app.get('/api/customer/returns', verifyCustomerToken, getCustomerReturns);
+
+app.get('/api/orders/:orderId/delivery', getOrderDeliveryTracking);
+
+app.get('/api/customer/notifications', verifyCustomerToken, getCustomerNotifications);
+app.patch('/api/customer/notifications/:id/read', verifyCustomerToken, markCustomerNotificationRead);
+
+app.post('/api/products/view', recordProductView);
+app.get('/api/customer/recently-viewed', verifyCustomerToken, getRecentlyViewed);
+
 // 2. Admin Management Routes
 app.use('/api/admin/auth', adminAuthRouter);
 app.use('/api/admin/dashboard', adminDashboardRouter);
@@ -124,6 +179,22 @@ app.use('/api/admin/enquiries', adminEnquiriesRouter);
 app.use('/api/admin/newsletter', adminNewsletterRouter);
 app.use('/api/admin/reports', adminReportsRouter);
 app.use('/api/admin/settings', adminSettingsRouter);
+
+// Milestone 4: Admin Management APIs
+app.get('/api/admin/warranty/claims', verifyAdminToken, getAdminWarrantyClaims);
+app.patch('/api/admin/warranty/claims/:id', verifyAdminToken, updateAdminWarrantyClaim);
+
+app.get('/api/admin/service/requests', verifyAdminToken, getAdminServiceRequests);
+app.patch('/api/admin/service/requests/:id', verifyAdminToken, updateAdminServiceRequest);
+
+app.get('/api/admin/returns', verifyAdminToken, getAdminReturns);
+app.patch('/api/admin/returns/:id', verifyAdminToken, updateAdminReturnStatus);
+app.post('/api/admin/refunds/process', verifyAdminToken, processAdminRefund);
+
+app.patch('/api/admin/orders/:orderId/delivery', verifyAdminToken, updateOrderDeliveryTracking);
+
+app.get('/api/admin/notifications', verifyAdminToken, getAdminNotifications);
+app.patch('/api/admin/notifications/:id/read', verifyAdminToken, markAdminNotificationRead);
 
 // 404 handler for API routes
 app.use('/api/*', (req: Request, res: Response) => {

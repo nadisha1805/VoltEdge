@@ -122,6 +122,11 @@ model Product {
   cartItems          CartItem[]
   wishlistItems      WishlistItem[]
   reviews            ProductReview[]
+  warrantyClaims     WarrantyClaim[]
+  serviceRequests    ServiceRequest[]
+  returnItems        ReturnItem[]
+  inventoryAlerts    InventoryAlert[]
+  recentlyViewed     RecentlyViewedProduct[]
 }
 
 model InventoryMovement {
@@ -166,6 +171,12 @@ model Customer {
   wishlist            Wishlist?
   reviews             ProductReview[]
   passwordResetTokens PasswordResetToken[]
+  warrantyClaims      WarrantyClaim[]
+  serviceRequests     ServiceRequest[]
+  returnRequests      ReturnRequest[]
+  notifications       Notification[]
+  notificationPref    NotificationPreference?
+  recentlyViewed      RecentlyViewedProduct[]
 }
 
 model CustomerAddress {
@@ -278,6 +289,10 @@ model Order {
   statusHistory    OrderStatusHistory[]
   payment          Payment?
   invoice          Invoice?
+  deliveryTracking DeliveryTracking?
+  warrantyClaims   WarrantyClaim[]
+  returnRequest    ReturnRequest?
+  refunds          RefundTransaction[]
 }
 
 model OrderItem {
@@ -465,5 +480,220 @@ model ShowroomSettings {
   currencySymbol    String   @default("₹")
   lowStockThreshold Int      @default(5)
   taxRate           Float    @default(18.0)
+  returnWindowDays  Int      @default(7) // Max days allowed after delivery for return requests
   updatedAt         DateTime @updatedAt
 }
+
+// -------------------------------------------------------------
+// 9. MILESTONE 4: WARRANTY MANAGEMENT
+// -------------------------------------------------------------
+
+model WarrantyClaim {
+  id              String             @id @default(uuid())
+  claimNumber     String             @unique // e.g. "CLM-2026-1001"
+  orderId         String
+  order           Order              @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product            @relation(fields: [productId], references: [id], onDelete: Restrict)
+  customerId      String?
+  customer        Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  serialNumber    String?
+  purchaseDate    DateTime
+  issueCategory   String             // "HARDWARE_DEFECT", "SCREEN_DISPLAY", "BATTERY_POWER", "CONNECTIVITY", "PHYSICAL_DAMAGE_NON_COVERED", "OTHER"
+  issueDescription String
+  coverageDetails String?            // e.g., "1 Year Manufacturer Standard Warranty"
+  status          String             @default("Submitted") // "Submitted", "Under Review", "Additional Information Required", "Approved", "Rejected", "In Service", "Resolved", "Closed"
+  rejectionReason String?
+  adminNotes      String?
+  supportingDocs  WarrantyDocument[]
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model WarrantyDocument {
+  id              String        @id @default(uuid())
+  claimId         String
+  claim           WarrantyClaim @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  fileUrl         String
+  fileName        String
+  fileType        String?
+  uploadedAt      DateTime      @default(now())
+}
+
+// -------------------------------------------------------------
+// 10. MILESTONE 4: REPAIR & SERVICE REQUESTS
+// -------------------------------------------------------------
+
+model ServiceRequest {
+  id                String       @id @default(uuid())
+  requestNumber     String       @unique // e.g. "SRV-2026-1001"
+  customerId        String?
+  customer          Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName      String
+  customerPhone     String
+  customerEmail     String
+  productCategory   String       // "Smartphones", "Laptops", "Televisions", "Refrigerators", "Washing Machines", "Air Conditioners", "Audio Devices", "Other Electronics"
+  productName       String
+  productModel      String?
+  serialNumber      String?
+  productId         String?
+  product           Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  purchaseDate      DateTime?
+  warrantyStatus    String       @default("OUT_OF_WARRANTY") // "UNDER_WARRANTY", "OUT_OF_WARRANTY", "UNKNOWN"
+  serviceType       String       @default("IN_STORE") // "IN_STORE", "TECHNICIAN_VISIT", "PRODUCT_INSPECTION", "REPAIR_REQUEST"
+  preferredDate     DateTime?
+  serviceAddress    String?      // If technician visit
+  problemDescription String
+  supportingImages  String?      // JSON stringified array of URLs
+  status            String       @default("Requested") // "Requested", "Scheduled", "Assigned", "Inspection", "Awaiting Approval", "In Progress", "Completed", "Cancelled"
+  assignedStaffId   String?
+  assignedStaffName String?
+  inspectionDetails String?
+  repairNotes       String?
+  estimatedCost     Float?       @default(0.0)
+  finalCost         Float?       @default(0.0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+}
+
+// -------------------------------------------------------------
+// 11. MILESTONE 4: RETURNS, REFUNDS & CANCELLATIONS
+// -------------------------------------------------------------
+
+model ReturnRequest {
+  id              String              @id @default(uuid())
+  returnNumber    String              @unique // e.g. "RET-2026-1001"
+  orderId         String              @unique
+  order           Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  customerId      String?
+  customer        Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  customerName    String
+  customerEmail   String
+  reasonCategory  String              // "DAMAGED_PRODUCT", "DEFECTIVE_PRODUCT", "INCORRECT_PRODUCT", "MISSING_ACCESSORIES", "NOT_AS_DESCRIBED", "OTHER"
+  reasonDetails   String
+  supportingImages String?             // JSON array of image URLs
+  status          String              @default("Requested") // "Requested", "Under Review", "Approved", "Rejected", "Inspection", "Completed", "Cancelled"
+  rejectionReason String?
+  inspectionNotes String?
+  approvedForRestock Boolean          @default(false)
+  restockedAt     DateTime?
+  refundStatus    String              @default("Requested") // "Requested", "Under Review", "Approved", "Rejected", "Processing", "Refunded", "Failed"
+  refundAmount    Float
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  items           ReturnItem[]
+}
+
+model ReturnItem {
+  id              String        @id @default(uuid())
+  returnRequestId String
+  returnRequest   ReturnRequest @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productName     String
+  productSku      String
+  quantity        Int
+  unitPrice       Float
+  totalRefund     Float
+  createdAt       DateTime      @default(now())
+}
+
+model RefundTransaction {
+  id               String   @id @default(uuid())
+  orderId          String
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amount           Float
+  currency         String   @default("INR")
+  paymentMethod    String   // "RAZORPAY", "CASH_ON_DELIVERY"
+  status           String   @default("PROCESSING") // "PROCESSING", "REFUNDED", "FAILED"
+  razorpayRefundId String?  @unique
+  razorpayPaymentId String?
+  adminNotes       String?  // Reference for manual COD refunds or reason
+  processedBy      String   // Admin email or "System"
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// 12. MILESTONE 4: DELIVERY MANAGEMENT & TRACKING
+// -------------------------------------------------------------
+
+model DeliveryTracking {
+  id                  String    @id @default(uuid())
+  orderId             String    @unique
+  order               Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shippingProvider    String?   // e.g., "BlueDart", "Delhivery", "DTDC", "VOLTEDGE Express"
+  trackingNumber      String?
+  trackingUrl         String?
+  dispatchDate        DateTime?
+  expectedDeliveryDate DateTime?
+  deliveredDate       DateTime?
+  deliveryStatus      String    @default("Order Confirmed") // "Order Confirmed", "Processing", "Dispatched", "In Transit", "Out for Delivery", "Delivered", "Failed Attempt"
+  deliveryNotes       String?
+  timeline            String?   // JSON stringified array of { timestamp, status, location, notes }
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// -------------------------------------------------------------
+// 13. MILESTONE 4: IN-APP NOTIFICATIONS & PREFERENCES
+// -------------------------------------------------------------
+
+model Notification {
+  id          String    @id @default(uuid())
+  customerId  String?   // If null, it is an Admin/Staff notification
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title       String
+  message     String
+  type        String    // "ORDER_UPDATE", "PAYMENT_SUCCESS", "REFUND_UPDATE", "WARRANTY_UPDATE", "SERVICE_UPDATE", "LOW_STOCK_ALERT", "ADMIN_ALERT"
+  link        String?   // Frontend route navigation target e.g. "/account?tab=warranty"
+  isRead      Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model NotificationPreference {
+  id                 String   @id @default(uuid())
+  customerId         String   @unique
+  customer           Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  emailOrderUpdates  Boolean  @default(true)
+  emailWarrantyUpdates Boolean @default(true)
+  emailServiceUpdates Boolean  @default(true)
+  emailPromotions    Boolean  @default(false)
+  inAppNotifications Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+}
+
+// -------------------------------------------------------------
+// 14. MILESTONE 4: INVENTORY ALERTS & BROWSING HISTORY
+// -------------------------------------------------------------
+
+model InventoryAlert {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productName String
+  productSku  String
+  currentStock Int
+  threshold   Int
+  alertType   String   // "LOW_STOCK", "OUT_OF_STOCK"
+  isResolved  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model RecentlyViewedProduct {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  viewedAt   DateTime @default(now())
+
+  @@unique([customerId, productId])
+}
+

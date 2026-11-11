@@ -61,6 +61,13 @@ export const requireCustomerAuth = async (
       fullName: `${customer.firstName} ${customer.lastName}`.trim(),
     };
 
+    (req as any).customer = {
+      id: customer.id,
+      customerId: customer.id,
+      email: customer.email,
+      fullName: `${customer.firstName} ${customer.lastName}`.trim(),
+    };
+
     next();
   } catch (error) {
     res.status(401).json({
@@ -69,6 +76,8 @@ export const requireCustomerAuth = async (
     });
   }
 };
+
+export const verifyCustomerToken = requireCustomerAuth;
 
 // Optional auth for guest/customer hybrid endpoints (like cart)
 export const optionalCustomerAuth = async (

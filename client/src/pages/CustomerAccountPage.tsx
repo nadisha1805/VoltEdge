@@ -28,7 +28,21 @@ import {
   ExternalLink,
   ShieldCheck,
   CheckCircle,
+  Award,
+  Wrench,
+  RotateCcw,
+  Bell,
 } from 'lucide-react';
+import {
+  getCustomerWarrantyClaims,
+  submitWarrantyClaim,
+  getCustomerServiceRequests,
+  submitServiceRequest,
+  getCustomerReturns,
+  submitReturnRequest,
+  getCustomerNotifications,
+  markCustomerNotificationRead,
+} from '../services/customerApi';
 
 export const CustomerAccountPage: React.FC = () => {
   const { customer, logout, refreshProfile } = useCustomerAuth();
@@ -36,7 +50,56 @@ export const CustomerAccountPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'orders' | 'addresses' | 'wishlist' | 'profile' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<
+    | 'overview'
+    | 'orders'
+    | 'warranty'
+    | 'service'
+    | 'returns'
+    | 'notifications'
+    | 'addresses'
+    | 'wishlist'
+    | 'profile'
+    | 'settings'
+  >('overview');
+
+  // Milestone 4: Customer States
+  const [warrantyClaims, setWarrantyClaims] = useState<any[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<any[]>([]);
+  const [returnRequests, setReturnRequests] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Milestone 4: Modals
+  const [isWarrantyModalOpen, setIsWarrantyModalOpen] = useState(false);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+
+  // Forms
+  const [warrantyForm, setWarrantyForm] = useState({
+    orderId: '',
+    productId: '',
+    serialNumber: '',
+    issueCategory: 'HARDWARE_DEFECT',
+    issueDescription: '',
+  });
+
+  const [serviceForm, setServiceForm] = useState({
+    productCategory: 'Smartphones',
+    productName: '',
+    productModel: '',
+    serialNumber: '',
+    serviceType: 'IN_STORE',
+    problemDescription: '',
+    serviceAddress: '',
+  });
+
+  const [returnForm, setReturnForm] = useState({
+    orderId: '',
+    reasonCategory: 'DAMAGED_PRODUCT',
+    reasonDetails: '',
+    productId: '',
+  });
 
   // Address State
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
@@ -82,8 +145,27 @@ export const CustomerAccountPage: React.FC = () => {
       });
       loadAddresses();
       loadOrders();
+      loadMilestone4Data();
     }
   }, [customer]);
+
+  const loadMilestone4Data = async () => {
+    try {
+      const [w, s, r, n] = await Promise.all([
+        getCustomerWarrantyClaims().catch(() => []),
+        getCustomerServiceRequests().catch(() => []),
+        getCustomerReturns().catch(() => []),
+        getCustomerNotifications().catch(() => ({ notifications: [], unreadCount: 0 })),
+      ]);
+      setWarrantyClaims(w);
+      setServiceRequests(s);
+      setReturnRequests(r);
+      setNotifications(n.notifications || []);
+      setUnreadNotifications(n.unreadCount || 0);
+    } catch {
+      // ignore
+    }
+  };
 
   const loadAddresses = async () => {
     try {
@@ -235,6 +317,78 @@ export const CustomerAccountPage: React.FC = () => {
                 {orders.length > 0 && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
                     {orders.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('warranty')}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'warranty'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Award className="w-4 h-4" /> Warranty Claims
+                </div>
+                {warrantyClaims.length > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                    {warrantyClaims.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('service')}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'service'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Wrench className="w-4 h-4" /> Service Requests
+                </div>
+                {serviceRequests.length > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                    {serviceRequests.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('returns')}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'returns'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <RotateCcw className="w-4 h-4" /> Returns & Refunds
+                </div>
+                {returnRequests.length > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">
+                    {returnRequests.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('notifications')}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
+                  activeTab === 'notifications'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Bell className="w-4 h-4" /> Notifications
+                </div>
+                {unreadNotifications > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-brand-blue text-white font-bold">
+                    {unreadNotifications}
                   </span>
                 )}
               </button>
@@ -482,6 +636,281 @@ export const CustomerAccountPage: React.FC = () => {
                             </Link>
                           </div>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MILESTONE 4: WARRANTY CLAIMS TAB */}
+            {activeTab === 'warranty' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Warranty & Protection Claims</h2>
+                    <p className="text-xs text-slate-400">
+                      Submit brand warranty claims, track repairs, and verify policy coverage
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (orders.length === 0) {
+                        showToast('You must have completed orders to submit a warranty claim', 'error');
+                        return;
+                      }
+                      setIsWarrantyModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition"
+                  >
+                    <Plus className="w-4 h-4" /> New Claim
+                  </button>
+                </div>
+
+                {warrantyClaims.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Award className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-base font-semibold text-slate-300">No warranty claims on record</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      All your electronics purchased at VOLTEDGE come with authentic manufacturer warranties.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {warrantyClaims.map((claim) => (
+                      <div
+                        key={claim.id}
+                        className="bg-slate-800/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-sm">{claim.claimNumber}</span>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                claim.status === 'Approved' || claim.status === 'Resolved'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  : claim.status === 'Rejected'
+                                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                              }`}
+                            >
+                              {claim.status}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-300 font-semibold">{claim.product?.name}</div>
+                          <div className="text-xs text-slate-400">
+                            Category: {claim.issueCategory} • Purchase Date:{' '}
+                            {new Date(claim.purchaseDate).toLocaleDateString()}
+                          </div>
+                          <p className="text-xs text-slate-400 italic mt-1 line-clamp-1">
+                            "{claim.issueDescription}"
+                          </p>
+                          {claim.adminNotes && (
+                            <div className="text-xs text-cyan-400 bg-cyan-950/40 p-2 rounded border border-cyan-800/50 mt-2">
+                              Note from Support: {claim.adminNotes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MILESTONE 4: REPAIR & SERVICE TAB */}
+            {activeTab === 'service' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Electronics Repair & Service</h2>
+                    <p className="text-xs text-slate-400">
+                      Book technician showroom visits or in-store repairs for all your electronics
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setIsServiceModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition"
+                  >
+                    <Plus className="w-4 h-4" /> Book Service
+                  </button>
+                </div>
+
+                {serviceRequests.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Wrench className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-base font-semibold text-slate-300">No active service tickets</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Our certified engineers provide inspection, hardware upgrades, and repairs.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {serviceRequests.map((req) => (
+                      <div
+                        key={req.id}
+                        className="bg-slate-800/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-sm">{req.requestNumber}</span>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                req.status === 'Completed'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                              }`}
+                            >
+                              {req.status}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                              {req.serviceType.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-300 font-semibold">
+                            {req.productName} ({req.productCategory})
+                          </div>
+                          <p className="text-xs text-slate-400 italic">"{req.problemDescription}"</p>
+                          {req.assignedStaffName && (
+                            <div className="text-xs text-emerald-400">
+                              Assigned Engineer: {req.assignedStaffName}
+                            </div>
+                          )}
+                          {req.finalCost > 0 && (
+                            <div className="text-xs text-cyan-400 font-bold">
+                              Final Bill: ₹{req.finalCost.toLocaleString('en-IN')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MILESTONE 4: RETURNS & REFUNDS TAB */}
+            {activeTab === 'returns' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Returns & Refunds</h2>
+                    <p className="text-xs text-slate-400">
+                      Submit return requests, view product inspection status, and monitor refund disbursal
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (orders.length === 0) {
+                        showToast('No orders eligible for return', 'error');
+                        return;
+                      }
+                      setIsReturnModalOpen(true);
+                    }}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition"
+                  >
+                    <Plus className="w-4 h-4" /> Request Return
+                  </button>
+                </div>
+
+                {returnRequests.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <RotateCcw className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-base font-semibold text-slate-300">No returns on record</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Enjoy hassle-free returns within the verified return policy period.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {returnRequests.map((ret) => (
+                      <div
+                        key={ret.id}
+                        className="bg-slate-800/40 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                      >
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-sm">{ret.returnNumber}</span>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                ret.status === 'Completed' || ret.status === 'Approved'
+                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                              }`}
+                            >
+                              {ret.status}
+                            </span>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                ret.refundStatus === 'Refunded'
+                                  ? 'bg-emerald-500/20 text-emerald-300'
+                                  : 'bg-blue-500/20 text-blue-300'
+                              }`}
+                            >
+                              Refund: {ret.refundStatus}
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-300 font-semibold">
+                            Order: {ret.order?.orderNumber} • ₹{ret.refundAmount?.toLocaleString('en-IN')}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            Reason: {ret.reasonCategory.replace('_', ' ')}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* MILESTONE 4: NOTIFICATIONS TAB */}
+            {activeTab === 'notifications' && (
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white">Notifications & Alerts</h2>
+                    <p className="text-xs text-slate-400">
+                      Stay updated with order deliveries, warranty resolutions, and refund status
+                    </p>
+                  </div>
+                  {unreadNotifications > 0 && (
+                    <button
+                      onClick={async () => {
+                        await markCustomerNotificationRead('all');
+                        setUnreadNotifications(0);
+                        loadMilestone4Data();
+                      }}
+                      className="text-xs text-cyan-400 hover:underline font-semibold"
+                    >
+                      Mark All as Read
+                    </button>
+                  )}
+                </div>
+
+                {notifications.length === 0 ? (
+                  <div className="text-center py-12 text-slate-500">
+                    <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-base font-semibold text-slate-300">You're all caught up!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className={`p-4 rounded-xl border transition ${
+                          n.isRead
+                            ? 'bg-slate-900/60 border-slate-800/80 text-slate-400'
+                            : 'bg-slate-800/60 border-blue-500/40 text-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-bold text-sm text-white">{n.title}</span>
+                          <span className="text-[10px] text-slate-500">
+                            {new Date(n.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-300">{n.message}</p>
                       </div>
                     ))}
                   </div>

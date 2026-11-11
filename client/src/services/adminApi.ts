@@ -322,3 +322,69 @@ export const updateShowroomSettings = async (data: Partial<ShowroomSettings>) =>
   return res.data;
 };
 
+// -------------------------------------------------------------
+// MILESTONE 4: WARRANTY CLAIMS ADMIN APIS
+// -------------------------------------------------------------
+export const getAdminWarrantyClaims = async (params: Record<string, any> = {}) => {
+  const res = await adminClient.get('/warranty/claims', { params });
+  return res.data;
+};
+
+export const updateAdminWarrantyClaim = async (id: string, data: any) => {
+  const res = await adminClient.patch(`/warranty/claims/${id}`, data);
+  return res.data;
+};
+
+// -------------------------------------------------------------
+// MILESTONE 4: REPAIR & SERVICE ADMIN APIS
+// -------------------------------------------------------------
+export const getAdminServiceRequests = async (params: Record<string, any> = {}) => {
+  const res = await adminClient.get('/service/requests', { params });
+  return res.data;
+};
+
+export const updateAdminServiceRequest = async (id: string, data: any) => {
+  const res = await adminClient.patch(`/service/requests/${id}`, data);
+  return res.data;
+};
+
+// -------------------------------------------------------------
+// MILESTONE 4: RETURNS & REFUNDS ADMIN APIS
+// -------------------------------------------------------------
+export const getAdminReturns = async (params: Record<string, any> = {}) => {
+  const res = await adminClient.get('/returns', { params });
+  return res.data;
+};
+
+export const updateAdminReturnStatus = async (id: string, data: any) => {
+  const res = await adminClient.patch(`/returns/${id}`, data);
+  return res.data;
+};
+
+export const processAdminRefund = async (data: any) => {
+  const res = await adminClient.post('/refunds/process', data);
+  return res.data;
+};
+
+// -------------------------------------------------------------
+// MILESTONE 4: DELIVERY TRACKING ADMIN APIS
+// -------------------------------------------------------------
+export const updateOrderDeliveryTracking = async (orderId: string, data: any) => {
+  const res = await adminClient.patch(`/orders/${orderId}/delivery`, data);
+  return res.data;
+};
+
+// -------------------------------------------------------------
+// MILESTONE 4: ADMIN NOTIFICATION APIS
+// -------------------------------------------------------------
+export const getAdminNotifications = async () => {
+  const res = await adminClient.get('/notifications');
+  return res.data;
+};
+
+export const markAdminNotificationRead = async (id: string) => {
+  const res = await adminClient.patch(`/notifications/${id}/read`);
+  return res.data;
+};
+
+

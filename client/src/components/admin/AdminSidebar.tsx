@@ -20,6 +20,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  Award,
+  Wrench,
+  RotateCcw,
 } from 'lucide-react';
 import { useAdminAuth } from '../../context/AdminAuthContext';
 import { AdminRole } from '../../types/admin';
@@ -61,6 +64,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { name: 'Inventory', path: '/admin/inventory', icon: Boxes },
     { name: 'Stock Movements', path: '/admin/inventory/movements', icon: ArrowLeftRight },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingBag },
+    { name: 'Returns & Refunds', path: '/admin/returns', icon: RotateCcw },
+    { name: 'Warranty Claims', path: '/admin/warranty', icon: Award },
+    { name: 'Service & Repairs', path: '/admin/service', icon: Wrench },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Coupons & Promos', path: '/admin/coupons', icon: Percent },
     { name: 'Staff Management', path: '/admin/staff', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },

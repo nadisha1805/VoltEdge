@@ -275,5 +275,154 @@ router.get('/customers', verifyAdminToken, async (req: AuthenticatedRequest, res
   }
 });
 
+// GET /api/admin/reports/warranties (Milestone 4)
+router.get('/warranties', verifyAdminToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { format } = req.query;
+    const claims = await prisma.warrantyClaim.findMany({
+      include: { product: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const reportData = claims.map((c) => ({
+      claimNumber: c.claimNumber,
+      date: c.createdAt.toISOString().split('T')[0],
+      customer: c.customerName,
+      product: c.product.name,
+      sku: c.product.sku,
+      category: c.issueCategory,
+      status: c.status,
+      serialNumber: c.serialNumber || 'N/A',
+    }));
+
+    if (format === 'csv') {
+      let csv = 'Claim Number,Date,Customer,Product,SKU,Issue Category,Status,Serial Number\n';
+      reportData.forEach((r) => {
+        csv += `"${r.claimNumber}","${r.date}","${r.customer}","${r.product.replace(/"/g, '""')}","${r.sku}","${r.category}","${r.status}","${r.serialNumber}"\n`;
+      });
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=voltedge-warranty-report.csv');
+      return res.status(200).send(csv);
+    }
+
+    res.json({ success: true, data: reportData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to generate warranty report' });
+  }
+});
+
+// GET /api/admin/reports/services (Milestone 4)
+router.get('/services', verifyAdminToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { format } = req.query;
+    const requests = await prisma.serviceRequest.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const reportData = requests.map((s) => ({
+      requestNumber: s.requestNumber,
+      date: s.createdAt.toISOString().split('T')[0],
+      customer: s.customerName,
+      phone: s.customerPhone,
+      productCategory: s.productCategory,
+      productName: s.productName,
+      serviceType: s.serviceType,
+      status: s.status,
+      assignedStaff: s.assignedStaffName || 'Unassigned',
+      estimatedCost: s.estimatedCost || 0,
+      finalCost: s.finalCost || 0,
+    }));
+
+    if (format === 'csv') {
+      let csv = 'Ticket Number,Date,Customer,Phone,Category,Product,Service Type,Status,Assigned Staff,Est Cost,Final Cost\n';
+      reportData.forEach((r) => {
+        csv += `"${r.requestNumber}","${r.date}","${r.customer}","${r.phone}","${r.productCategory}","${r.productName.replace(/"/g, '""')}","${r.serviceType}","${r.status}","${r.assignedStaff}",${r.estimatedCost},${r.finalCost}\n`;
+      });
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=voltedge-services-report.csv');
+      return res.status(200).send(csv);
+    }
+
+    res.json({ success: true, data: reportData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to generate service report' });
+  }
+});
+
+// GET /api/admin/reports/returns (Milestone 4)
+router.get('/returns', verifyAdminToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { format } = req.query;
+    const returns = await prisma.returnRequest.findMany({
+      include: { order: true, items: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const reportData = returns.map((r) => ({
+      returnNumber: r.returnNumber,
+      orderNumber: r.order.orderNumber,
+      date: r.createdAt.toISOString().split('T')[0],
+      customer: r.customerName,
+      reason: r.reasonCategory,
+      refundAmount: r.refundAmount,
+      status: r.status,
+      refundStatus: r.refundStatus,
+      restocked: r.approvedForRestock ? 'Yes' : 'No',
+    }));
+
+    if (format === 'csv') {
+      let csv = 'Return ID,Order Number,Date,Customer,Reason,Refund Amount,Status,Refund Status,Restocked\n';
+      reportData.forEach((r) => {
+        csv += `"${r.returnNumber}","${r.orderNumber}","${r.date}","${r.customer}","${r.reason}",${r.refundAmount},"${r.status}","${r.refundStatus}","${r.restocked}"\n`;
+      });
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=voltedge-returns-report.csv');
+      return res.status(200).send(csv);
+    }
+
+    res.json({ success: true, data: reportData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to generate return report' });
+  }
+});
+
+// GET /api/admin/reports/coupons (Milestone 4)
+router.get('/coupons', verifyAdminToken, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { format } = req.query;
+    const coupons = await prisma.coupon.findMany({
+      include: { usages: true },
+      orderBy: { usageCount: 'desc' },
+    });
+
+    const reportData = coupons.map((c) => {
+      const totalDiscountGiven = c.usages.reduce((acc, u) => acc + u.discountApplied, 0);
+      return {
+        code: c.code,
+        description: c.description,
+        discountType: c.discountType,
+        discountValue: c.discountValue,
+        usageCount: c.usageCount,
+        totalDiscountGiven,
+        isActive: c.isActive ? 'Active' : 'Inactive',
+      };
+    });
+
+    if (format === 'csv') {
+      let csv = 'Coupon Code,Description,Type,Value,Usage Count,Total Discount Given,Status\n';
+      reportData.forEach((r) => {
+        csv += `"${r.code}","${r.description.replace(/"/g, '""')}","${r.discountType}",${r.discountValue},${r.usageCount},${r.totalDiscountGiven},"${r.isActive}"\n`;
+      });
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename=voltedge-coupons-report.csv');
+      return res.status(200).send(csv);
+    }
+
+    res.json({ success: true, data: reportData });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Failed to generate coupon report' });
+  }
+});
+
 export default router;
 

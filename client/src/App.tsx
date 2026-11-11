@@ -42,6 +42,9 @@ import { AdminEnquiriesPage } from './pages/admin/AdminEnquiriesPage';
 import { AdminNewsletterPage } from './pages/admin/AdminNewsletterPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { AdminWarrantyPage } from './pages/admin/AdminWarrantyPage';
+import { AdminServicePage } from './pages/admin/AdminServicePage';
+import { AdminReturnsPage } from './pages/admin/AdminReturnsPage';
 
 export const App: React.FC = () => {
   return (
@@ -93,6 +96,9 @@ export const App: React.FC = () => {
                       <Route path="inventory" element={<AdminInventoryPage />} />
                       <Route path="inventory/movements" element={<AdminMovementsPage />} />
                       <Route path="orders" element={<AdminOrdersPage />} />
+                      <Route path="returns" element={<AdminReturnsPage />} />
+                      <Route path="warranty" element={<AdminWarrantyPage />} />
+                      <Route path="service" element={<AdminServicePage />} />
                       <Route path="customers" element={<AdminCustomersPage />} />
                       <Route path="coupons" element={<AdminCouponsPage />} />
                       <Route
