@@ -14,6 +14,7 @@
     "prisma:push": "prisma db push",
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:seed:m2": "tsx prisma/seed-m2.ts",
+    "prisma:seed:prod": "tsx prisma/seed-production.ts",
     "test": "node test-m2-api.js",
     "test:m1": "node test-api.js"
   },

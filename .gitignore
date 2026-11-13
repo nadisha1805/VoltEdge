@@ -4,8 +4,11 @@ build/
 .env
 *.log
 .DS_Store
+*.db
 *.db-journal
+server/*.db
+server/prisma/*.db
+server/prisma/*.db-journal
 client/dist/
 server/dist/
-server/prisma/*.db-journal
 
